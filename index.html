@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museo Martín Fierro - Presentación Interactiva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Azeret+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ESTILO GLOBAL: MUSEO ANALÓGICO */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: #1a1a1a;
+            color: #3e2723;
+            font-family: 'Arimo', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* CONTENEDOR DE DIAPOSITIVA (1280x720) */
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            background-color: #fff3dd;
+            background-image: url('https://www.transparenttextures.com/patterns/papyros.png'); /* Textura papel */
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            padding: 50px 80px;
+            border: 15px solid #3e2723;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-container.active { display: flex; opacity: 1; z-index: 10; }
+
+        /* TÍTULOS Y TEXTO */
+        .slide-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 58px;
+            color: #2b1d1a;
+            margin-bottom: 25px;
+            border-bottom: 3px double #3e2723;
+            width: 100%;
+        }
+
+        p { font-size: 20px; line-height: 1.5; color: #4e342e; }
+
+        /* NAVEGACIÓN INTERACTIVA */
+        .nav-ui {
+            position: fixed;
+            bottom: 40px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #3e2723;
+            padding: 12px 30px;
+            border-radius: 50px;
+            color: #fff3dd;
+        }
+
+        .nav-ui button {
+            background: none;
+            border: 2px solid #fff3dd;
+            color: #fff3dd;
+            padding: 8px 20px;
+            cursor: pointer;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .nav-ui button:hover { background: #fff3dd; color: #3e2723; }
+
+        /* SALA DE INICIO: REGISTRO */
+        .register-box {
+            background: rgba(255, 255, 255, 0.4);
+            padding: 30px;
+            border: 1px dashed #3e2723;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .register-box h3 { font-family: 'Azeret Mono', monospace; font-size: 18px; margin-bottom: 15px; }
+        .member-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-style: italic; }
+
+        /* DISEÑO DE SALAS CON IMÁGENES */
+        .content-area { display: flex; gap: 40px; align-items: center; flex: 1; }
+        .museum-plaque { flex: 1; padding: 20px; border-left: 5px solid #3e2723; }
+        .exhibit-frame {
+            flex: 1;
+            height: 400px;
+            border: 10px solid #2b1d1a;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 10px 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .exhibit-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* VERDADERO O FALSO: PREGUNTAS */
+        .qa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .qa-card {
+            background: #efebe9;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid #d7ccc8;
+            transition: 0.3s;
+            text-align: center;
+        }
+        .qa-card:hover { transform: scale(1.03); background: #fffaf1; }
+        .qa-card h4 { font-family: 'Azeret Mono', monospace; font-size: 14px; color: #8d6e63; }
+        .qa-card .reveal-btn { margin-top: 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        
+        .answer-reveal { display: none; margin-top: 10px; animation: slideIn 0.4s; }
+        .answer-reveal.show { display: block; }
+        .status-tag { display: inline-block; padding: 5px 10px; border-radius: 5px; font-weight: bold; margin-bottom: 5px; }
+        .status-falso { background: #ffcdd2; color: #c62828; }
+        .status-verdadero { background: #c8e6c9; color: #2e7d32; }
+        .justification { font-size: 13px; line-height: 1.3; }
+
+        /* SALA ESPECIAL: FULL BLEED */
+        .bleed-layout { display: flex; padding: 0 !important; }
+        .bleed-text { flex: 1; padding: 60px; display: flex; flex-direction: column; justify-content: center; }
+        .bleed-img { flex: 1.2; height: 100%; object-fit: cover; border-left: 10px solid #3e2723; }
+
+        /* ANIMACIONES */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="nav-ui">
+    <button onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i> Pasillo Anterior</button>
+    <span id="counter" style="font-family: 'Azeret Mono';">1 / 9</span>
+    <button onclick="nextSlide()">Siguiente Sala <i class="fa-solid fa-chevron-right"></i></button>
+</div>
+
+<div class="slide-container active" style="justify-content: center; text-align: center;">
+    <h1 style="font-family: 'Playfair Display'; font-size: 80px; margin-bottom: 10px;">Museo Martín Fierro</h1>
+    <p style="font-family: 'Azeret Mono'; font-weight: bold; letter-spacing: 5px;">CATÁLOGO VIRTUAL DE LA MEMORIA GAUCHA</p>
+    
+    <div class="register-box">
+        <h3><i class="fa-solid fa-pen-nib"></i> REGISTRO DE INVESTIGADORES:</h3>
+        <ul class="member-list">
+            <li>Rodrigo Valentin Herrera Fernandez</li>
+            <li>Paez Juan</li>
+            <li>Luciano Ortiz</li>
+            <li>Sanchez Hugo</li>
+            <li>Bruno Benitez</li>
+        </ul>
+    </div>
+    <p style="margin-top: 30px; font-style: italic;">"Los hermanos sean unidos porque esa es la ley primera..."</p>
+</div>
+
+<div class="slide-container">
+    <h2 class="slide-title">Sala 1: El Orgullo y la Libertad</h2>
+    <div class="content-area">
+        <div class="museum-plaque">
+            <h3>OBJETO EXHIBIDO: La Guitarra Criolla</h3>
+            <p style="margin-top: 20px;">Esta sala recrea los days en que el gaucho era libre. Se siente el aire de la llanura bajo las estrellas.</p>
+            <p style="margin-top: 20px; border-top: 1px solid #3e2723; padding-top: 10px;"><strong>Importancia:</strong> Era el gran consuelo para aliviar sus penas. El gaucho canta porque le sale del alma, es el símbolo de su libertad natural.</p>
+        </div>
+        <div class="exhibit-frame">
+            <img src="http://googleusercontent.com/image_collection/image_retrieval/8812271633801339004" alt="Guitarra Criolla Antigua">
+        </div>
+    </div>
+</div>
+
+<div class="slide-container bleed-layout">
+    <div class="bleed-text">
+        <h2 class="slide-title" style="border:none;">Sala 2: El Abuso en la Frontera</h2>
+        <h3>OBJETO: El Cepo de Madera</h3>
+        <p style="margin-top: 20px;">Un lugar frío, triste y oscuro. Muestra cómo la ley obligaba a los gauchos a ir al ejército y cómo los jefes abusaban de ellos.</p>
+        <p style="margin-top: 20px;"><strong>Representación:</strong> Castigos físicos, trabajo sin paga y la pérdida de la dignidad humana bajo el mando del Estado.</p>
+    </div>
+    <img class="bleed-img" src="http://googleusercontent.com/image_collection/image_retrieval/11697811850736396545" alt="Cepo de Madera">
+</div>
+
+<div class="slide-container" style="padding: 0; background: none; border: none;">
+    <div style="position: relative; width: 100%; height: 100%; border: 15px solid #3e2723; border-radius: 20px; overflow: hidden;">
+        <img src="http://googleusercontent.com/image_collection/image_retrieval/11561381253375021149" style="width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1;">
+        <div style="position: absolute; z-index: 2; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 60px; color: white;">
+            <h2 style="font-family: 'Playfair Display'; font-size: 50px;">Sala 3: El Regreso a la Tapera</h2>
+            <p style="color: #ddd; max-width: 800px;">Fierro escapa tras tres años y encuentra su casa destruida. La "Tapera" representa la pérdida total de su familia y el momento en que jura volverse "malo".</p>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container">
+    <h2 class="slide-title">Sala 4: La Vida de Fugitivo</h2>
+    <div class="content-area">
+        <div class="exhibit-frame">
+            <img src="http://googleusercontent.com/image_collection/image_retrieval/8968045220794031543" alt="Facón Gaucho">
+        </div>
+        <div class="museum-plaque">
+            <h3>OBJETO: El Facón de Hoja Ancha</h3>
+            <p>Recrea el ambiente tenso de la pulpería. El cuchillo representa el destino violento al que la sociedad empujó a Fierro.</p>
+            <p style="margin-top: 20px; font-weight: bold;">Simboliza la transformación de un hombre bueno en un criminal por culpa de la injusticia social.</p>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container bleed-layout">
+    <img class="bleed-img" src="http://googleusercontent.com/image_collection/image_retrieval/5924804180923267809" alt="Cuchillos Cruzados">
+    <div class="bleed-text">
+        <h2 class="slide-title" style="border:none;">Sala 5: Amigos en el Peligro</h2>
+        <h3>OBJETO: Cuchillos Cruzados</h3>
+        <p>Representa la noche oscura en que la policía rodea a Fierro y el sargento Cruz decide cambiar de bando para defenderlo.</p>
+        <p style="margin-top: 20px; font-weight: bold; color: #2b1d1a;">"Cruz no consiente que se mate así a un valiente."</p>
+        <p style="font-size: 16px; margin-top: 10px;">Símbolo de lealtad absoluta entre perseguidos.</p>
+    </div>
+</div>
+
+<div class="slide-container">
+    <h2 class="slide-title">Desafío: ¿Verdadero o Falso?</h2>
+    <p style="margin-bottom: 10px; font-style: italic;">Haz clic en cada pregunta para descubrir la verdad histórica:</p>
+    <div class="qa-grid">
+        <div class="qa-card" onclick="toggleQA(this)">
+            <h4>PREGUNTA 1</h4>
+            <p style="font-size: 14px;">¿La guitarra se exhibe para mostrar que los gauchos tenían lujos?</p>
+            <div class="reveal-btn">Revelar <i class="fa-solid fa-eye"></i></div>
+            <div class="answer-reveal">
+                <span class="status-tag status-falso">FALSO</span>
+                <p class="justification">Era su consuelo para aliviar penas y contar su historia; es símbolo de libertad, no de riqueza.</p>
+            </div>
+        </div>
+        <div class="qa-card" onclick="toggleQA(this)">
+            <h4>PREGUNTA 2</h4>
+            <p style="font-size: 14px;">¿El cepo representa los abusos y la miseria sufrida en el fortín?</p>
+            <div class="reveal-btn">Revelar <i class="fa-solid fa-eye"></i></div>
+            <div class="answer-reveal">
+                <span class="status-tag status-verdadero">VERDADERO</span>
+                <p class="justification">Muestran los castigos físicos y cómo el Estado les quitaba su dignidad y pertenencias.</p>
+            </div>
+        </div>
+        <div class="qa-card" onclick="toggleQA(this)">
+            <h4>PREGUNTA 3</h4>
+            <p style="font-size: 14px;">¿Al regresar, Fierro encuentra su casa intacta y a su esposa feliz?</p>
+            <div class="reveal-btn">Revelar <i class="fa-solid fa-eye"></i></div>
+            <div class="answer-reveal">
+                <span class="status-tag status-falso">FALSO</span>
+                <p class="justification">Solo halla una tapera. Su esposa se fue para no morir de hambre y sus hijos se perdieron como peones.</p>
+            </div>
+        </div>
+        <div class="qa-card" onclick="toggleQA(this)">
+            <h4>PREGUNTA 4</h4>
+            <p style="font-size: 14px;">¿Cruz se une a Fierro porque es injusto matar así a un valiente?</p>
+            <div class="reveal-btn">Revelar <i class="fa-solid fa-eye"></i></div>
+            <div class="answer-reveal">
+                <span class="status-tag status-verdadero">VERDADERO</span>
+                <p class="justification">Al ver su valentía, Cruz cambia de bando para defenderlo, naciendo una amistad eterna.</p>
+            </div>
+        </div>
+        <div class="qa-card" onclick="toggleQA(this)">
+            <h4>PREGUNTA 5</h4>
+            <p style="font-size: 14px;">¿El único mensaje es elogiar las leyes del gobierno de esa época?</p>
+            <div class="reveal-btn">Revelar <i class="fa-solid fa-eye"></i></div>
+            <div class="answer-reveal">
+                <span class="status-tag status-falso">FALSO</span>
+                <p class="justification">Es una denuncia contra la injusticia social y el maltrato del Estado hacia el gaucho.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container" style="justify-content: center;">
+    <h2 class="slide-title">El Mensaje Principal</h2>
+    <div style="display: flex; gap: 40px;">
+        <div style="flex: 1; border: 2px solid #3e2723; padding: 30px; background: rgba(255,255,255,0.3);">
+            <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-gavel"></i> Queja contra la Injusticia</h3>
+            <p>La historia denuncia cómo el gobierno maltrataba al gaucho. Fierro era un hombre de familia, pero el Estado lo dejó sin nada, obligándolo a ser fugitivo.</p>
+        </div>
+        <div style="flex: 1; border: 2px solid #3e2723; padding: 30px; background: rgba(255,255,255,0.3);">
+            <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-hands-holding"></i> El Valor de la Amistad</h3>
+            <p>En la soledad, la obra rescata la lealtad. La unión entre Fierro y Cruz demuestra que la hermandad es la única arma contra un mundo injusto.</p>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container" style="text-align: center; justify-content: center;">
+    <h1 style="font-family: 'Playfair Display'; font-size: 70px;">¿Alguna Pregunta?</h1>
+    <p style="font-family: Azeret Mono; font-size: 24px; margin-top: 20px;">FIN DEL RECORRIDO</p>
+    <p style="margin-top: 40px; font-style: italic;">"Gracias por visitar nuestra exhibición sobre el gaucho Martín Fierro."</p>
+    <div style="margin-top: 50px; border-top: 1px solid #3e2723; display: inline-block; padding: 20px;">
+        <p style="font-size: 14px;">Museo Virtual | 2026</p>
+    </div>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide-container');
+    const counter = document.getElementById('counter');
+
+    function updatePresentation() {
+        slides.forEach(s => s.classList.remove('active'));
+        slides[currentSlide].classList.add('active');
+        counter.innerText = (currentSlide + 1) + " / " + slides.length;
+    }
+
+    function nextSlide() {
+        if(currentSlide < slides.length - 1) { currentSlide++; updatePresentation(); }
+    }
+
+    function prevSlide() {
+        if(currentSlide > 0) { currentSlide--; updatePresentation(); }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if(e.key === "ArrowRight") nextSlide();
+        if(e.key === "ArrowLeft") prevSlide();
+    });
+
+    function toggleQA(card) {
+        const reveal = card.querySelector('.answer-reveal');
+        const btn = card.querySelector('.reveal-btn');
+        reveal.classList.toggle('show');
+        btn.style.display = reveal.classList.contains('show') ? 'none' : 'block';
+    }
+</script>
+
+</body>
+</html>
